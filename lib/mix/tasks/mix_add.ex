@@ -5,13 +5,13 @@ defmodule Mix.Tasks.Add do
   Usage: mix add [OPTS] [DEP...]
 
   When the version is not specified will get the latest version from hex.
-    Setting the version only works when you add one dependency 
+    Setting the version only works when you add one dependency
   When the sorted flag is set it will sort the all dependencies in mix.exs
     This can/will mess up comments that are set inside the dependency list
 
   OPTS:
     --version         Set the version for the DEP
-    --sorted          Sort the all dependencies in mix.exs 
+    --sorted          Sort the all dependencies in mix.exs
     --in              Set the input file (default: "mix.exs")
     --out              Set the output file (default: "mix.exs")
 
@@ -132,7 +132,27 @@ defmodule Mix.Tasks.Add do
     "~> #{version}"
   end
 
-  defp deps_walker({:deps, _, nil} = item, _, _) do
+  defp deps_walker({:project, _, _} = item, _, _) do
+    {item, :project}
+  end
+
+  defp deps_walker(
+         [{{:__block__, _, [:do]}, {:__block__, _, [project_keyword]}}] = item,
+         :project,
+         _
+       ) do
+    # find deps function name
+    [deps_key] =
+      Enum.flat_map(project_keyword, fn
+        {{:__block__, _, [:deps]}, {deps_key, _, []}} -> [deps_key]
+        _ -> []
+      end)
+
+    {item, {:deps_key, deps_key}}
+  end
+
+  defp deps_walker({key, _, args} = item, {:deps_key, deps_key}, _)
+       when key == deps_key and args != [] do
     {item, :deps}
   end
 
