@@ -13,7 +13,8 @@ defmodule Mix.Tasks.Add do
     --version         Set the version for the DEP
     --sorted          Sort the all dependencies in mix.exs
     --in              Set the input file (default: "mix.exs")
-    --out              Set the output file (default: "mix.exs")
+    --out             Set the output file (default: "mix.exs")
+    --umbrella        Add DEP to all apps in an umbrella project
 
   ## examples
 
@@ -42,13 +43,13 @@ defmodule Mix.Tasks.Add do
 
   use Mix.Task
 
+  @options [version: :string, sorted: :boolean, out: :string, in: :string, umbrella: :boolean]
+
   @impl Mix.Task
   def run(args) do
-    {opts, args} =
-      OptionParser.parse!(args,
-        strict: [version: :string, sorted: :boolean, out: :string, in: :string]
-      )
+    {opts, args} = OptionParser.parse!(args, strict: @options)
 
+    umbrella = Keyword.get(opts, :umbrella, false) and Mix.Project.umbrella?()
     sorted = Keyword.get(opts, :sorted, false)
     infile = Keyword.get(opts, :in, "mix.exs")
     outfile = Keyword.get(opts, :out, "mix.exs")
@@ -65,9 +66,33 @@ defmodule Mix.Tasks.Add do
           Enum.map(deps, fn dep -> {String.to_atom(dep), fetch_version_or_option([], dep)} end)
       end
 
+    app_paths =
+      if umbrella do
+        Mix.Project.apps_paths()
+      else
+        [{nil, ""}]
+      end
+
+    Enum.each(app_paths, fn {app, path} ->
+      infile = Path.join(path, infile)
+      outfile = Path.join(path, outfile)
+
+      apply_to_file(infile, outfile, %{dependencies: dependencies, sorted: sorted, app: app})
+    end)
+  end
+
+  defp apply_to_file(infile, outfile, opts) do
     mix_exs_file = File.read!(infile)
 
-    opts = [
+    out = inner_apply(mix_exs_file, opts)
+
+    File.write!(outfile, out)
+  end
+
+  defp inner_apply(intext, opts) do
+    app = Map.get(opts, :app)
+
+    quote_opts = [
       unescape: false,
       warn_on_unnecessary_quotes: false,
       literal_encoder: &{:ok, {:__block__, &2, [&1]}},
@@ -75,36 +100,41 @@ defmodule Mix.Tasks.Add do
       emit_warnings: false
     ]
 
-    {quoted, comments} = Code.string_to_quoted_with_comments!(mix_exs_file, opts)
+    {quoted, comments} = Code.string_to_quoted_with_comments!(intext, quote_opts)
 
     {quoted, deps_added} =
       Macro.prewalk(
         quoted,
         nil,
-        &deps_walker(&1, &2, %{dependencies: dependencies, sorted: sorted})
+        &deps_walker(&1, &2, opts)
       )
 
-    print_deps_added(deps_added)
+    print_deps_added(deps_added, app)
 
-    out =
-      quoted
-      |> Code.Formatter.to_algebra(comments: comments)
-      |> Inspect.Algebra.format(98)
-      |> IO.iodata_to_binary()
-      |> Code.format_string!()
-
-    File.write!(outfile, out)
+    quoted
+    |> Code.Formatter.to_algebra(comments: comments)
+    |> Inspect.Algebra.format(98)
+    |> IO.iodata_to_binary()
+    |> Code.format_string!()
   end
 
-  defp print_deps_added([]) do
+  defp print_deps_added([], nil) do
     Mix.shell().info("no new dependencies added")
   end
 
-  defp print_deps_added(deps_added) do
+  defp print_deps_added([], app) do
+    Mix.shell().info("no new dependencies added for app `#{app}`")
+  end
+
+  defp print_deps_added(deps_added, app) do
     Enum.each(
       deps_added,
       fn {dep, version} ->
-        Mix.shell().info("adding `:#{dep}` with version `#{version}`")
+        if app do
+          Mix.shell().info("adding `:#{dep}` with version `#{version}` for app `#{app}`")
+        else
+          Mix.shell().info("adding `:#{dep}` with version `#{version}`")
+        end
       end
     )
   end
