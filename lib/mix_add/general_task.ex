@@ -72,18 +72,18 @@ defmodule MixAdd.GeneralTask do
   end
 
   defp apply_method(:add, _) do
-    Mix.shell().error("For some reason running mix deps.get inside a task does not work")
-    Mix.shell().error("run `mix deps.get` after this task")
-    Mix.Task.run("deps.get", [])
+    # sadly we cant use Mix.Task.run because Mix.Project needs to be reloaded
+    # so we use another process to do this
+    System.cmd("mix", ["deps.get"], into: IO.stream())
   end
 
   defp apply_method(:update, updated_collection) do
     updated =
       updated_collection
       |> Enum.flat_map(fn {:update, _, updated} -> updated end)
-      |> Enum.map(&to_string/1)
+      |> Enum.map(&(&1 |> elem(0) |> to_string()))
 
-    Mix.Task.run("deps.update", updated)
+    System.cmd("mix", ["deps.update"] ++ updated, into: IO.stream())
   end
 
   defp apply_method(:remove, removed_collection) do
