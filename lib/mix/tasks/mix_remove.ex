@@ -12,19 +12,12 @@ defmodule Mix.Tasks.Remove do
     --in              Set the input file (default: "mix.exs")
     --out             Set the output file (default: "mix.exs")
     --umbrella        Remove DEP from all apps in an umbrella project
+    --apply           Run the mix command to remove DEP from mix.lock
 
   ## examples
 
   ```sh
   mix remove ex_doc
-  ```
-
-  ```sh
-  mix remove --version ">= 0.0.0" ex_doc
-  ```
-
-  ```sh
-  mix remove --version "~> 1.2" jason
   ```
 
   ```sh
@@ -36,7 +29,7 @@ defmodule Mix.Tasks.Remove do
   ```
 
   """
-  @shortdoc "Add dependencies with a simple command"
+  @shortdoc "Remove dependencies with a simple command"
 
   use Mix.Task
 

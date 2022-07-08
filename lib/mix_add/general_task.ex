@@ -3,14 +3,27 @@ defmodule MixAdd.GeneralTask do
   GeneralTask that branches out into the seperate subtasks, Add, Remove, Update
   """
 
-  @options [version: :string, sorted: :boolean, out: :string, in: :string, umbrella: :boolean]
+  @options [
+    version: :string,
+    sorted: :boolean,
+    out: :string,
+    in: :string,
+    umbrella: :boolean,
+    apply: :boolean,
+    path: :string
+  ]
 
   def add(args) do
     run(:add, args)
   end
 
   def remove(args) do
+    # add version here so we skip the call hex
     run(:remove, args ++ ["--version", "0.0.0"])
+  end
+
+  def update(args) do
+    run(:update, args)
   end
 
   def run(method, args) do
@@ -40,25 +53,56 @@ defmodule MixAdd.GeneralTask do
         [{nil, ""}]
       end
 
-    Enum.each(app_paths, fn {app, path} ->
-      infile = Path.join(path, infile)
-      outfile = Path.join(path, outfile)
+    changed =
+      Enum.flat_map(app_paths, fn {app, path} ->
+        infile = Path.join(path, infile)
+        outfile = Path.join(path, outfile)
 
-      apply_to_file(infile, outfile, %{
-        dependencies: dependencies,
-        sorted: sorted,
-        app: app,
-        method: method
-      })
-    end)
+        apply_to_file(infile, outfile, %{
+          dependencies: dependencies,
+          sorted: sorted,
+          app: app,
+          method: method
+        })
+      end)
+
+    if Keyword.get(opts, :apply) do
+      apply_method(method, changed)
+    end
+  end
+
+  defp apply_method(:add, _) do
+    Mix.shell().error("For some reason running mix deps.get inside a task does not work")
+    Mix.shell().error("run `mix deps.get` after this task")
+    Mix.Task.run("deps.get", [])
+  end
+
+  defp apply_method(:update, updated_collection) do
+    updated =
+      updated_collection
+      |> Enum.flat_map(fn {:update, _, updated} -> updated end)
+      |> Enum.map(&to_string/1)
+
+    Mix.Task.run("deps.update", updated)
+  end
+
+  defp apply_method(:remove, removed_collection) do
+    removed =
+      removed_collection
+      |> Enum.flat_map(fn {:remove, _, removed} -> removed end)
+      |> Enum.map(&to_string/1)
+
+    Mix.Task.run("deps.unlock", removed)
+    Mix.Task.run("deps.clean", removed)
   end
 
   defp apply_to_file(infile, outfile, opts) do
     mix_exs_file = File.read!(infile)
 
-    out = inner_apply(mix_exs_file, opts)
+    {out, deps_changed} = inner_apply(mix_exs_file, opts)
 
     File.write!(outfile, out)
+    deps_changed
   end
 
   defp inner_apply(intext, opts) do
@@ -75,52 +119,74 @@ defmodule MixAdd.GeneralTask do
 
     print_deps_changed(deps_changed, app)
 
-    quoted
-    |> Code.Formatter.to_algebra(comments: comments)
-    |> Inspect.Algebra.format(98)
-    |> IO.iodata_to_binary()
-    |> Code.format_string!()
-  end
+    out =
+      quoted
+      |> Code.Formatter.to_algebra(comments: comments)
+      |> Inspect.Algebra.format(98)
+      |> IO.iodata_to_binary()
+      |> Code.format_string!()
 
-  defp print_deps_changed({:add, []}, nil) do
-    Mix.shell().info("no new dependencies added")
+    {out, [deps_changed]}
   end
 
   defp print_deps_changed({:add, []}, app) do
-    Mix.shell().info("no new dependencies added for app `#{app}`")
+    Mix.shell().info("no new dependencies added#{to_app_message(app)}")
   end
 
   defp print_deps_changed({:add, deps_added}, app) do
     Enum.each(
       deps_added,
-      fn {dep, version} ->
-        if app do
-          Mix.shell().info("adding `:#{dep}` with version `#{version}` for app `#{app}`")
-        else
-          Mix.shell().info("adding `:#{dep}` with version `#{version}`")
-        end
+      fn {dep, info} ->
+        info = Map.new(info)
+        Mix.shell().info("adding `:#{dep}` #{version_or_path(info)}#{to_app_message(app)}")
       end
     )
   end
 
-  defp print_deps_changed({:remove, []}, nil) do
-    Mix.shell().info("all dependencies removed")
+  defp print_deps_changed({:remove, [], []}, _) do
+    Mix.raise("nothing removed")
   end
 
-  defp print_deps_changed({:remove, []}, app) do
-    Mix.shell().info("all dependencies removed for app `#{app}`")
-  end
-
-  defp print_deps_changed({:remove, deps_added}, app) do
+  defp print_deps_changed({:remove, deps_not_removed, deps_removed}, app) do
     Enum.each(
-      deps_added,
-      fn {dep, _} ->
-        if app do
-          Mix.shell().info("not removed `:#{dep}` for app `#{app}`")
-        else
-          Mix.shell().info("not removed `:#{dep}`")
-        end
+      deps_not_removed,
+      fn dep ->
+        Mix.shell().info("not removed `:#{dep}`#{to_app_message(app)}")
+      end
+    )
+
+    Enum.each(
+      deps_removed,
+      fn dep ->
+        Mix.shell().info("removed `:#{dep}`#{to_app_message(app)}")
       end
     )
   end
+
+  defp print_deps_changed({:update, [], []}, app) do
+    Mix.shell().info("nothing updated#{to_app_message(app)}")
+  end
+
+  defp print_deps_changed({:update, not_updated, updated}, app) do
+    Enum.each(
+      not_updated,
+      fn {dep, _} ->
+        Mix.shell().info("not updated `:#{dep}`#{to_app_message(app)}")
+      end
+    )
+
+    Enum.each(
+      updated,
+      fn {dep, info} ->
+        info = Map.new(info)
+        Mix.shell().info("updated `:#{dep}` to #{version_or_path(info)}#{to_app_message(app)}")
+      end
+    )
+  end
+
+  defp version_or_path(%{version: version}), do: "version `#{version}`"
+  defp version_or_path(%{path: path}), do: "path `#{path}`"
+
+  defp to_app_message(nil), do: ""
+  defp to_app_message(app), do: " for app `#{app}`"
 end
