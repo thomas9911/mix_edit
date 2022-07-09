@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Edit.Add do
   @moduledoc """
   Add dependencies with a simple command
 
+  ```
   Usage: mix edit.add [OPTS] [DEP...]
 
   When the version is not specified will get the latest version from hex.
@@ -20,6 +21,7 @@ defmodule Mix.Tasks.Edit.Add do
     --override        Set the override option
     --no-runtime      Set the runtime option to false
     --apply           Run the mix command to fetch the DEP
+  ```
 
   ## examples
 

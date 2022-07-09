@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Edit.Remove do
   @moduledoc """
   Remove dependencies with a simple command
 
+  ```
   Usage: mix edit.remove [OPTS] [DEP...]
 
   When the sorted flag is set it will sort the all dependencies in mix.exs
@@ -13,6 +14,7 @@ defmodule Mix.Tasks.Edit.Remove do
     --out             Set the output file (default: "mix.exs")
     --umbrella        Remove DEP from all apps in an umbrella project
     --apply           Run the mix command to remove DEP from mix.lock
+  ```
 
   ## examples
 

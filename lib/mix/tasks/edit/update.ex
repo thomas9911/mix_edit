@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Edit.Update do
   @moduledoc """
   Update dependencies with a simple command
 
+  ```
   Usage: mix edit.update [OPTS] [DEP...]
 
   When the sorted flag is set it will sort the all dependencies in mix.exs
@@ -18,6 +19,7 @@ defmodule Mix.Tasks.Edit.Update do
     --override        Set the override option
     --no-runtime      Set the runtime option to false
     --apply           Run the mix command to fetch the DEP
+  ```
 
   ## examples
 
