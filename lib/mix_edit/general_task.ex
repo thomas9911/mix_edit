@@ -11,7 +11,10 @@ defmodule MixEdit.GeneralTask do
     umbrella: :boolean,
     apply: :boolean,
     path: :string,
-    only: :string
+    only: :string,
+    org: :string,
+    override: :boolean,
+    runtime: :boolean
   ]
 
   def add(args) do

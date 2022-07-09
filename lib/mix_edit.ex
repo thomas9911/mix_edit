@@ -7,14 +7,14 @@ defmodule MixEdit do
   def fetch_version_or_option(package, opts \\ []) do
     extra_requirements =
       opts
-      |> Keyword.drop([:path, :version, :apply, :out, :in])
+      |> Keyword.take([:only, :org, :override, :runtime])
       |> Keyword.update(:only, [], fn only ->
         only
         |> String.split("+")
         |> Enum.reject(&(&1 == ""))
         |> Enum.map(&String.to_atom/1)
       end)
-      |> Enum.reject(&(elem(&1, 1) == []))
+      |> Enum.reject(&(elem(&1, 1) in [[], nil]))
 
     cond do
       Keyword.has_key?(opts, :path) ->
@@ -208,6 +208,23 @@ defmodule MixEdit do
         [
           {{:__block__, [format: :keyword], [:only]},
            {:__block__, [], [Enum.map(value, &{:__block__, [], [&1]})]}}
+        ]
+
+      {:org, value} ->
+        [
+          {{:__block__, [format: :keyword], [:organization]},
+           {:__block__, [delimiter: "\""], [value]}}
+        ]
+
+      {:override, value} ->
+        [
+          {{:__block__, [format: :keyword], [:override]},
+           {:__block__, [delimiter: "\""], [value]}}
+        ]
+
+      {:runtime, value} ->
+        [
+          {{:__block__, [format: :keyword], [:runtime]}, {:__block__, [delimiter: "\""], [value]}}
         ]
 
       {:path, value} ->

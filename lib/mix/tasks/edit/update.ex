@@ -14,8 +14,10 @@ defmodule Mix.Tasks.Edit.Update do
     --in              Set the input file (default: "mix.exs")
     --out             Set the output file (default: "mix.exs")
     --umbrella        Update DEP from all apps in an umbrella project
-    --apply           Run the mix command to fetch the DEP
     --only            Setting the only flag, example 'test' or 'test+dev'
+    --override        Set the override option
+    --no-runtime      Set the runtime option to false
+    --apply           Run the mix command to fetch the DEP
 
   ## examples
 
