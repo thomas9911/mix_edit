@@ -10,7 +10,8 @@ defmodule MixEdit.GeneralTask do
     in: :string,
     umbrella: :boolean,
     apply: :boolean,
-    path: :string
+    path: :string,
+    only: :string
   ]
 
   def add(args) do
@@ -83,7 +84,9 @@ defmodule MixEdit.GeneralTask do
       |> Enum.flat_map(fn {:update, _, updated} -> updated end)
       |> Enum.map(&(&1 |> elem(0) |> to_string()))
 
-    System.cmd("mix", ["deps.update"] ++ updated, into: IO.stream())
+    unless updated == [] do
+      System.cmd("mix", ["deps.update"] ++ updated, into: IO.stream())
+    end
   end
 
   defp apply_method(:remove, removed_collection) do
@@ -92,8 +95,10 @@ defmodule MixEdit.GeneralTask do
       |> Enum.flat_map(fn {:remove, _, removed} -> removed end)
       |> Enum.map(&to_string/1)
 
-    Mix.Task.run("deps.unlock", removed)
-    Mix.Task.run("deps.clean", removed)
+    unless removed == [] do
+      Mix.Task.run("deps.unlock", removed)
+      Mix.Task.run("deps.clean", removed)
+    end
   end
 
   defp apply_to_file(infile, outfile, opts) do

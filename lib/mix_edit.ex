@@ -5,18 +5,16 @@ defmodule MixEdit do
 
   @doc "fetch version from hex.pm or use the version set in the options"
   def fetch_version_or_option(package, opts \\ []) do
-    # case Keyword.fetch(opts, :version) do
-    #   {:ok, version} ->
-    #     version
-
-    #   _ ->
-    #     Hex.start()
-    #     auth = Mix.Tasks.Hex.auth_info(:read, auth_inline: false)
-
-    #     Hex.API.Package.get(nil, package, auth)
-    #     |> get_latest_package_version!(package)
-    #     |> add_prefix()
-    # end
+    extra_requirements =
+      opts
+      |> Keyword.drop([:path, :version, :apply, :out, :in])
+      |> Keyword.update(:only, [], fn only ->
+        only
+        |> String.split("+")
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.map(&String.to_atom/1)
+      end)
+      |> Enum.reject(&(elem(&1, 1) == []))
 
     cond do
       Keyword.has_key?(opts, :path) ->
@@ -36,6 +34,7 @@ defmodule MixEdit do
 
         [version: hex_version]
     end
+    |> Enum.concat(extra_requirements)
   end
 
   defp get_latest_package_version!({:ok, {200, %{"latest_stable_version" => version}, _}}, _) do
@@ -202,10 +201,13 @@ defmodule MixEdit do
 
   defp format_dep_keyword(keyword) do
     Enum.flat_map(keyword, fn
+      {:only, []} ->
+        []
+
       {:only, value} ->
         [
           {{:__block__, [format: :keyword], [:only]},
-           {:__block__, [], [[{:__block__, [], value}]]}}
+           {:__block__, [], [Enum.map(value, &{:__block__, [], [&1]})]}}
         ]
 
       {:path, value} ->

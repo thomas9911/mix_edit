@@ -24,7 +24,8 @@ defmodule Example.MixProject do
   defp deps do
     [
       # mix_add is the only required deps (here)
-      {:mix_edit, path: "../../"}
+      {:mix_edit, path: "../../"},
+      {:ex_doc, "~> 0.28.4", only: [:dev]}
     ]
   end
 end

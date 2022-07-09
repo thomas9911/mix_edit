@@ -9,11 +9,13 @@ defmodule Mix.Tasks.Edit.Update do
 
   OPTS:
     --version         Set the version for the DEP
+    --path            Set the path for the DEP
     --sorted          Sort the all dependencies in mix.exs
     --in              Set the input file (default: "mix.exs")
     --out             Set the output file (default: "mix.exs")
     --umbrella        Update DEP from all apps in an umbrella project
     --apply           Run the mix command to fetch the DEP
+    --only            Setting the only flag, example 'test' or 'test+dev'
 
   ## examples
 
