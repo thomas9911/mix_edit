@@ -1,4 +1,4 @@
-defmodule MixAdd.GeneralTask do
+defmodule MixEdit.GeneralTask do
   @moduledoc """
   GeneralTask that branches out into the seperate subtasks, Add, Remove, Update
   """
@@ -40,10 +40,10 @@ defmodule MixAdd.GeneralTask do
           Mix.raise("invalid arguments, needs one argument")
 
         [dep] ->
-          [{String.to_atom(dep), MixAdd.fetch_version_or_option(dep, opts)}]
+          [{String.to_atom(dep), MixEdit.fetch_version_or_option(dep, opts)}]
 
         deps ->
-          Enum.map(deps, fn dep -> {String.to_atom(dep), MixAdd.fetch_version_or_option(dep)} end)
+          Enum.map(deps, fn dep -> {String.to_atom(dep), MixEdit.fetch_version_or_option(dep)} end)
       end
 
     app_paths =
@@ -108,13 +108,13 @@ defmodule MixAdd.GeneralTask do
   defp inner_apply(intext, opts) do
     app = Map.get(opts, :app)
 
-    {quoted, comments} = MixAdd.quote_string!(intext)
+    {quoted, comments} = MixEdit.quote_string!(intext)
 
     {quoted, deps_changed} =
       Macro.prewalk(
         quoted,
         nil,
-        &MixAdd.deps_walker(&1, &2, opts)
+        &MixEdit.deps_walker(&1, &2, opts)
       )
 
     print_deps_changed(deps_changed, app)

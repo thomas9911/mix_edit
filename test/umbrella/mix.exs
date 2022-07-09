@@ -17,7 +17,7 @@ defmodule Umbrella.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:mix_add, path: "../../"},
+      {:mix_edit, path: "../../"},
       {:jason, "~> 1.3.0"}
     ]
   end

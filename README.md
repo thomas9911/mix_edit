@@ -1,6 +1,8 @@
-# MixAdd
+# MixEdit
 
-POC if it is possible to do something similiar to `cargo add` in elixir
+Elixir mix tasks to add, remove and update dependencies from mix.exs (or Mix.Project)
+
+Inspired by [cargo-edit](https://crates.io/crates/cargo-edit)
 
 ## Installation
 
@@ -10,7 +12,7 @@ by adding `mix_add` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:mix_add, "~> 0.1.0"}
+    {:mix_edit, "~> 0.1.0"}
   ]
 end
 ```

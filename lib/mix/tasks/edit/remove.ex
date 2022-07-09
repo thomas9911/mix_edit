@@ -1,8 +1,8 @@
-defmodule Mix.Tasks.Remove do
+defmodule Mix.Tasks.Edit.Remove do
   @moduledoc """
   Remove dependencies with a simple command
 
-  Usage: mix remove [OPTS] [DEP...]
+  Usage: mix edit.remove [OPTS] [DEP...]
 
   When the sorted flag is set it will sort the all dependencies in mix.exs
     This can/will mess up comments that are set inside the dependency list
@@ -17,15 +17,15 @@ defmodule Mix.Tasks.Remove do
   ## examples
 
   ```sh
-  mix remove ex_doc
+  mix edit.remove ex_doc
   ```
 
   ```sh
-  mix remove jason tzdata gettext plug timex ex_doc
+  mix edit.remove jason tzdata gettext plug timex ex_doc
   ```
 
   ```sh
-  mix remove --sorted jason tzdata gettext plug timex ex_doc
+  mix edit.remove --sorted jason tzdata gettext plug timex ex_doc
   ```
 
   """
@@ -35,6 +35,6 @@ defmodule Mix.Tasks.Remove do
 
   @impl Mix.Task
   def run(args) do
-    MixAdd.GeneralTask.remove(args)
+    MixEdit.GeneralTask.remove(args)
   end
 end

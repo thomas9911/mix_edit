@@ -1,6 +1,6 @@
-defmodule MixAdd do
+defmodule MixEdit do
   @moduledoc """
-  Documentation for `MixAdd`.
+  Documentation for `MixEdit`.
   """
 
   @doc "fetch version from hex.pm or use the version set in the options"

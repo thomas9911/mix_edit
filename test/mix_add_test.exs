@@ -1,34 +1,34 @@
-defmodule MixAddTest do
+defmodule MixEditTest do
   use ExUnit.Case
-  doctest MixAdd
+  doctest MixEdit
 
   test "adds new dependency" do
     expected = [{:ex_doc, ">= 0.0.0"}]
-    deps = [] |> inspect() |> MixAdd.quote_string!() |> unwrap_deps()
+    deps = [] |> inspect() |> MixEdit.quote_string!() |> unwrap_deps()
 
     assert {expected, []} ==
              deps
-             |> MixAdd.add_deps([{:ex_doc, ">= 0.0.0"}])
+             |> MixEdit.add_deps([{:ex_doc, ">= 0.0.0"}])
              |> Code.eval_quoted()
   end
 
   test "appends new dependency" do
     expected = [{:ex_doc, ">= 0.0.0"}, {:plug, "~> 1.0"}]
-    deps = [{:ex_doc, ">= 0.0.0"}] |> inspect() |> MixAdd.quote_string!() |> unwrap_deps()
+    deps = [{:ex_doc, ">= 0.0.0"}] |> inspect() |> MixEdit.quote_string!() |> unwrap_deps()
 
     assert {expected, []} ==
              deps
-             |> MixAdd.add_deps([{:plug, "~> 1.0"}])
+             |> MixEdit.add_deps([{:plug, "~> 1.0"}])
              |> Code.eval_quoted()
   end
 
   test "add does not touch existing deps" do
     expected = [{:ex_doc, "~> 1.2"}]
-    deps = expected |> inspect() |> MixAdd.quote_string!() |> unwrap_deps()
+    deps = expected |> inspect() |> MixEdit.quote_string!() |> unwrap_deps()
 
     assert {expected, []} ==
              deps
-             |> MixAdd.add_deps([{:ex_doc, ">= 0.0.0"}])
+             |> MixEdit.add_deps([{:ex_doc, ">= 0.0.0"}])
              |> Code.eval_quoted()
   end
 

@@ -24,7 +24,7 @@ defmodule Example.MixProject do
   defp deps do
     [
       # mix_add is the only required deps (here)
-      {:mix_add, path: "../../"},
+      {:mix_edit, path: "../../"},
       {:jason, "~> 1.3.0"}
     ]
   end
