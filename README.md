@@ -12,13 +12,35 @@ by adding `mix_edit` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:mix_edit, "~> 0.1.0"}
+    {:mix_edit, github: "thomas9911/mix_edit"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/mix_edit>.
+Or installed globally by:
 
-<!-- reference archive project https://github.com/phoenixframework/phoenix/tree/master/installer -->
+```sh
+mix archive.install github thomas9911/mix_edit
+```
+
+and uninstalled globally by:
+
+```sh
+mix archive.uninstall mix_edit
+```
+
+## Examples
+
+```sh
+mix edit.add ex_doc
+```
+
+```sh
+mix edit.remove ex_doc
+```
+
+```sh
+mix edit.update ex_doc
+```
+
+For more examples and options check the `mix help edit.add`, `mix help edit.ex_doc`, `mix help edit.update` commands
