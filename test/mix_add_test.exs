@@ -2,6 +2,63 @@ defmodule MixEditTest do
   use ExUnit.Case, async: true
   doctest MixEdit
 
+  describe "fetch_version_or_option" do
+    test "fetches from hex" do
+      assert [version: "~> 735.7"] == MixEdit.fetch_version_or_option("testing")
+    end
+
+    test "not exists raises" do
+      assert_raise(Mix.Error, "package `not_existing` not found", fn ->
+        MixEdit.fetch_version_or_option("not_existing")
+      end)
+    end
+
+    test "fetches from hex with options" do
+      assert [
+               version: "~> 735.7",
+               override: true,
+               runtime: false,
+               only: [:test, :dev, :prod],
+               org: "myorg"
+             ] ==
+               MixEdit.fetch_version_or_option("testing",
+                 override: true,
+                 runtime: false,
+                 only: "test+dev+prod",
+                 org: "myorg",
+                 extra_fields: :ignored
+               )
+    end
+
+    test "from version" do
+      assert [version: ">= 0.0.0"] ==
+               MixEdit.fetch_version_or_option("testing", version: ">= 0.0.0")
+    end
+
+    test "from path" do
+      assert [path: "../../testing"] ==
+               MixEdit.fetch_version_or_option("testing", path: "../../testing")
+    end
+
+    test "from path with options" do
+      assert [
+               path: "../../testing",
+               override: true,
+               runtime: false,
+               only: [:test],
+               org: "myorg"
+             ] ==
+               MixEdit.fetch_version_or_option("testing",
+                 path: "../../testing",
+                 override: true,
+                 runtime: false,
+                 only: "test",
+                 org: "myorg",
+                 extra_fields: :ignored
+               )
+    end
+  end
+
   describe "add_deps" do
     test "adds new dependency" do
       expected = [{:ex_doc, ">= 0.0.0"}]
