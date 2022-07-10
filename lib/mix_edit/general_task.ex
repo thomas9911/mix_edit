@@ -22,7 +22,7 @@ defmodule MixEdit.GeneralTask do
   end
 
   def remove(args) do
-    # add version here so we skip the call hex
+    # add version here so we skip the call to hex
     run(:remove, args ++ ["--version", "0.0.0"])
   end
 
@@ -33,7 +33,7 @@ defmodule MixEdit.GeneralTask do
   def run(method, args) do
     {opts, args} = OptionParser.parse!(args, strict: @options)
 
-    umbrella = Keyword.get(opts, :umbrella, false) and Mix.Project.umbrella?()
+    umbrella? = Keyword.get(opts, :umbrella, false) and Mix.Project.umbrella?()
     sorted = Keyword.get(opts, :sorted, false)
     infile = Keyword.get(opts, :in, "mix.exs")
     outfile = Keyword.get(opts, :out, "mix.exs")
@@ -51,7 +51,7 @@ defmodule MixEdit.GeneralTask do
       end
 
     app_paths =
-      if umbrella do
+      if umbrella? do
         Mix.Project.apps_paths()
       else
         [{nil, ""}]
@@ -70,7 +70,7 @@ defmodule MixEdit.GeneralTask do
         })
       end)
 
-    if Keyword.get(opts, :apply) do
+    if Keyword.get(opts, :apply, false) do
       apply_method(method, changed)
     end
   end

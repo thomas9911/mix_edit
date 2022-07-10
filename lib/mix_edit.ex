@@ -140,6 +140,7 @@ defmodule MixEdit do
     {current_deps ++ Enum.map(dependencies, &format_dep/1), {:add, dependencies}}
   end
 
+  @doc "remove dependencies from the dependency list"
   def remove_deps(current_deps, remove_deps) do
     to_be_removed = Enum.map(remove_deps, &elem(&1, 0))
 
@@ -157,6 +158,7 @@ defmodule MixEdit do
     {new_deps, {:remove, not_removed, removed}}
   end
 
+  @doc "update dependencies from the dependency list in place"
   def update_deps(current_deps, update_deps) do
     {new_deps, not_updated, updated} =
       Enum.reduce(current_deps, {[], update_deps, []}, fn x, {deps, not_updated, updated} ->

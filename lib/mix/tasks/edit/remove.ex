@@ -9,11 +9,14 @@ defmodule Mix.Tasks.Edit.Remove do
     This can/will mess up comments that are set inside the dependency list
 
   OPTS:
+    extra:
     --sorted          Sort the all dependencies in mix.exs
+    --apply           Run the mix command to remove DEP from mix.lock
+    --umbrella        Remove DEP from all apps in an umbrella project
+
+    debug:
     --in              Set the input file (default: "mix.exs")
     --out             Set the output file (default: "mix.exs")
-    --umbrella        Remove DEP from all apps in an umbrella project
-    --apply           Run the mix command to remove DEP from mix.lock
   ```
 
   ## examples

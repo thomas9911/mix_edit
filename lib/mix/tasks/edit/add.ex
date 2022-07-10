@@ -13,14 +13,18 @@ defmodule Mix.Tasks.Edit.Add do
   OPTS:
     --version         Set the version for the DEP
     --path            Set the path for the DEP
-    --sorted          Sort the all dependencies in mix.exs
-    --in              Set the input file (default: "mix.exs")
-    --out             Set the output file (default: "mix.exs")
-    --umbrella        Add DEP to all apps in an umbrella project
     --only            Setting the only flag, example 'test' or 'test+dev'
     --override        Set the override option
     --no-runtime      Set the runtime option to false
+
+    extra:
     --apply           Run the mix command to fetch the DEP
+    --sorted          Sort the all dependencies in mix.exs
+    --umbrella        Add DEP to all apps in an umbrella project
+
+    debug:
+    --in              Set the input file (default: "mix.exs")
+    --out             Set the output file (default: "mix.exs")
   ```
 
   ## examples
