@@ -1,35 +1,149 @@
 defmodule MixEditTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest MixEdit
 
-  test "adds new dependency" do
-    expected = [{:ex_doc, ">= 0.0.0"}]
-    deps = [] |> inspect() |> MixEdit.quote_string!() |> unwrap_deps()
+  describe "add_deps" do
+    test "adds new dependency" do
+      expected = [{:ex_doc, ">= 0.0.0"}]
 
-    assert {expected, []} ==
-             deps
-             |> MixEdit.add_deps([{:ex_doc, ">= 0.0.0"}])
-             |> Code.eval_quoted()
+      deps =
+        []
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:add, [ex_doc: [version: ">= 0.0.0"]]}} =
+               MixEdit.add_deps(deps, [{:ex_doc, [version: ">= 0.0.0"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
+
+    test "appends new dependency" do
+      expected = [{:ex_doc, ">= 0.0.0"}, {:plug, "~> 1.0"}]
+
+      deps =
+        [{:ex_doc, ">= 0.0.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:add, [plug: [version: "~> 1.0"]]}} =
+               MixEdit.add_deps(deps, [{:plug, [version: "~> 1.0"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
+
+    test "add does not touch existing deps" do
+      expected = [{:ex_doc, "~> 1.2"}]
+
+      deps =
+        expected
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:add, []}} = MixEdit.add_deps(deps, [{:ex_doc, [version: ">= 0.0.0"]}])
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
   end
 
-  test "appends new dependency" do
-    expected = [{:ex_doc, ">= 0.0.0"}, {:plug, "~> 1.0"}]
-    deps = [{:ex_doc, ">= 0.0.0"}] |> inspect() |> MixEdit.quote_string!() |> unwrap_deps()
+  describe "remove_deps" do
+    test "remove dependency" do
+      expected = [{:ex_doc, ">= 0.0.0"}]
 
-    assert {expected, []} ==
-             deps
-             |> MixEdit.add_deps([{:plug, "~> 1.0"}])
-             |> Code.eval_quoted()
+      deps =
+        [{:ex_doc, ">= 0.0.0"}, {:plug, "~> 1.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:remove, [], [:plug]}} =
+               MixEdit.remove_deps(deps, [{:plug, [version: "0.0.0"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
+
+    test "does nothing if not in list" do
+      expected = [{:ex_doc, ">= 0.0.0"}]
+
+      deps =
+        [{:ex_doc, ">= 0.0.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:remove, [:plug], []}} =
+               MixEdit.remove_deps(deps, [{:plug, [version: "0.0.0"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
   end
 
-  test "add does not touch existing deps" do
-    expected = [{:ex_doc, "~> 1.2"}]
-    deps = expected |> inspect() |> MixEdit.quote_string!() |> unwrap_deps()
+  describe "update_deps" do
+    test "version" do
+      expected = [{:ex_doc, "~> 1.0"}]
 
-    assert {expected, []} ==
-             deps
-             |> MixEdit.add_deps([{:ex_doc, ">= 0.0.0"}])
-             |> Code.eval_quoted()
+      deps =
+        [{:ex_doc, ">= 0.0.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:update, [], [ex_doc: [version: "~> 1.0"]]}} =
+               MixEdit.update_deps(deps, [{:ex_doc, [version: "~> 1.0"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
+  end
+
+  describe "options formatted" do
+    test "version with organisation" do
+      expected = [{:ex_doc, "~> 1.0", [organization: "myorg"]}]
+
+      deps =
+        [{:ex_doc, ">= 0.0.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:update, [], [ex_doc: [version: "~> 1.0", org: "myorg"]]}} =
+               MixEdit.update_deps(deps, [{:ex_doc, [version: "~> 1.0", org: "myorg"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
+
+    test "path" do
+      expected = [{:ex_doc, [path: "../../ex_doc"]}]
+
+      deps =
+        [{:ex_doc, ">= 0.0.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list, {:update, [], [ex_doc: [path: "../../ex_doc"]]}} =
+               MixEdit.update_deps(deps, [{:ex_doc, [path: "../../ex_doc"]}])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
+
+    test "options" do
+      expected = [{:ex_doc, "~> 1.0", [override: true, runtime: false]}]
+
+      deps =
+        [{:ex_doc, ">= 0.0.0"}]
+        |> inspect()
+        |> MixEdit.quote_string!()
+        |> unwrap_deps()
+
+      assert {new_list,
+              {:update, [], [ex_doc: [version: "~> 1.0", override: true, runtime: false]]}} =
+               MixEdit.update_deps(deps, [
+                 {:ex_doc, [version: "~> 1.0", override: true, runtime: false]}
+               ])
+
+      assert {expected, []} == Code.eval_quoted(new_list)
+    end
   end
 
   defp unwrap_deps({{:__block__, _, [deps]}, _}), do: deps
