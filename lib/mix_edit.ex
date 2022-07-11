@@ -28,7 +28,7 @@ defmodule MixEdit do
         auth = Mix.Tasks.Hex.auth_info(:read, auth_inline: false)
 
         hex_version =
-          get_version_fetcher().get(nil, package, auth)
+          get_version_fetcher().get(extra_requirements[:org], package, auth)
           |> get_latest_package_version!(package)
           |> add_prefix()
 
