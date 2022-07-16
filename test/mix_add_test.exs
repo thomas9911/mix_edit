@@ -15,7 +15,7 @@ defmodule MixEditTest do
 
     test "fetches from hex with options" do
       assert [
-               version: "~> 735.7",
+               version: "~> 1.23",
                override: true,
                runtime: false,
                only: [:test, :dev, :prod],

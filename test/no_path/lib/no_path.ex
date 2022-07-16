@@ -1,0 +1,2 @@
+defmodule NoPath do
+end

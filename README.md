@@ -12,6 +12,8 @@ by adding `mix_edit` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
+    {:mix_edit, "~> 0.1.0"},
+    # or via github
     {:mix_edit, github: "thomas9911/mix_edit"}
   ]
 end
@@ -20,6 +22,10 @@ end
 Or installed globally by:
 
 ```sh
+mix archive.install hex mix_edit
+
+# or via github
+
 mix archive.install github thomas9911/mix_edit
 ```
 
