@@ -110,6 +110,8 @@ defmodule MixEdit.GeneralTask do
     {out, deps_changed} = inner_apply(mix_exs_file, opts)
 
     File.write!(outfile, out)
+    Mix.Task.get!("format").run([outfile])
+
     deps_changed
   end
 
@@ -130,9 +132,7 @@ defmodule MixEdit.GeneralTask do
     out =
       quoted
       |> Code.Formatter.to_algebra(comments: comments)
-      |> Inspect.Algebra.format(98)
-      |> IO.iodata_to_binary()
-      |> Code.format_string!()
+      |> Inspect.Algebra.format(512)
 
     {out, [deps_changed]}
   end
