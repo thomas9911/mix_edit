@@ -107,7 +107,10 @@ defmodule MixEdit do
 
     deps =
       if sorted do
-        Enum.sort_by(deps, fn {_, _, [{{_, _, [dep]}, _}]} -> dep end)
+        Enum.sort_by(deps, fn
+          {_, _, [{{_, _, [dep]}, _}]} -> dep
+          {_, _, [{_, _, [dep]}, _, _]} -> dep
+        end)
       else
         deps
       end

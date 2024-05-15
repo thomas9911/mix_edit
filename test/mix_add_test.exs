@@ -203,37 +203,77 @@ defmodule MixEditTest do
     end
   end
 
-  test "sorting the dependency list works" do
-    deps = """
-    defmodule Test.MixProject do
-      use Mix.Project
+  describe "sorting the dependency list works" do
+    test "simple" do
+      mix_project = """
+      defmodule Test.MixProject do
+        use Mix.Project
 
-      def project do
-        [
-          version: "0.1.0",
-          start_permanent: Mix.env() == :prod,
-          deps: deps()
-        ]
-      end
+        def project do
+          [
+            version: "0.1.0",
+            start_permanent: Mix.env() == :prod,
+            deps: deps()
+          ]
+        end
 
-      defp deps do
-        [
-          {:jason, "~> 0.0.0"},
-          {:ex_doc, ">= 0.0.0"},
-          {:sweet_xml, ">= 0.0.0"}
-        ]
+        defp deps do
+          [
+            {:jason, "~> 0.0.0"},
+            {:ex_doc, ">= 0.0.0"},
+            {:sweet_xml, ">= 0.0.0"}
+          ]
+        end
       end
+      """
+
+      assert mix_project_sort(mix_project, testing: [version: ">= 0.0.0"]) =~
+               "defp deps do [{:ex_doc, \">= 0.0.0\"}, {:jason, \"~> 0.0.0\"}, {:sweet_xml, \">= 0.0.0\"}, {:testing, \">= 0.0.0\"}] end"
     end
-    """
 
+    test "extra tags" do
+      mix_project = """
+      defmodule MoreTags.MixProject do
+        use Mix.Project
+
+        def project do
+          [
+            version: "0.1.0",
+            start_permanent: Mix.env() == :prod,
+            deps: deps()
+          ]
+        end
+
+        # Run "mix help deps" to learn about dependencies.
+        defp deps do
+          [
+            {:jason, "~> 1.0"},
+            {:credo, "~> 1.7.1", only: [:dev]},
+            {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+            {:excoveralls, "~> 0.17", only: [:dev, :test]},
+          ]
+        end
+      end
+
+      """
+
+      assert mix_project_sort(mix_project, testing: [version: ">= 0.0.0"]) =~
+               Enum.join([
+                 "deps do [{:credo, \"~> 1.7.1\", only: [:dev]}, {:dialyxir, \"~> 1.4\", only: [:dev], runtime: false}, ",
+                 "{:excoveralls, \"~> 0.17\", only: [:dev, :test]}, {:jason, \"~> 1.0\"}, {:testing, \">= 0.0.0\"}] end"
+               ])
+    end
+  end
+
+  defp mix_project_sort(mix_project, deps) do
     opts = %{
-      dependencies: [testing: [version: ">= 0.0.0"]],
+      dependencies: deps,
       sorted: true,
       app: :test,
       method: :add
     }
 
-    {quoted, comments} = MixEdit.quote_string!(deps)
+    {quoted, comments} = MixEdit.quote_string!(mix_project)
 
     {new_file, info} =
       Macro.prewalk(
@@ -244,16 +284,12 @@ defmodule MixEditTest do
 
     assert {:add, [testing: [version: ">= 0.0.0"]]} == info
 
-    stringified =
-      new_file
-      |> Code.Formatter.to_algebra(comments: comments)
-      |> Inspect.Algebra.format(:infinity)
-      |> IO.iodata_to_binary()
-      |> String.replace("\n", " ")
-      |> String.replace(~r/\s+/, " ")
-
-    assert stringified =~
-             "defp deps do [{:ex_doc, \">= 0.0.0\"}, {:jason, \"~> 0.0.0\"}, {:sweet_xml, \">= 0.0.0\"}, {:testing, \">= 0.0.0\"}] end"
+    new_file
+    |> Code.Formatter.to_algebra(comments: comments)
+    |> Inspect.Algebra.format(:infinity)
+    |> IO.iodata_to_binary()
+    |> String.replace("\n", " ")
+    |> String.replace(~r/\s+/, " ")
   end
 
   defp unwrap_deps({{:__block__, _, [deps]}, _}), do: deps
