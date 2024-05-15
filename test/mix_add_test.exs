@@ -236,6 +236,8 @@ defmodule MixEditTest do
       defmodule MoreTags.MixProject do
         use Mix.Project
 
+        @dev_envs [:dev, :test]
+
         def project do
           [
             version: "0.1.0",
@@ -250,7 +252,7 @@ defmodule MixEditTest do
             {:jason, "~> 1.0"},
             {:credo, "~> 1.7.1", only: [:dev]},
             {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
-            {:excoveralls, "~> 0.17", only: [:dev, :test]},
+            {:excoveralls, "~> 0.17", only: @dev_envs},
           ]
         end
       end
@@ -260,7 +262,7 @@ defmodule MixEditTest do
       assert mix_project_sort(mix_project, testing: [version: ">= 0.0.0"]) =~
                Enum.join([
                  "deps do [{:credo, \"~> 1.7.1\", only: [:dev]}, {:dialyxir, \"~> 1.4\", only: [:dev], runtime: false}, ",
-                 "{:excoveralls, \"~> 0.17\", only: [:dev, :test]}, {:jason, \"~> 1.0\"}, {:testing, \">= 0.0.0\"}] end"
+                 "{:excoveralls, \"~> 0.17\", only: @dev_envs}, {:jason, \"~> 1.0\"}, {:testing, \">= 0.0.0\"}] end"
                ])
     end
   end

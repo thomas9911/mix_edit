@@ -129,7 +129,27 @@ defmodule MixEdit do
 
   @doc "add dependencies to the dependency list"
   def add_deps(current_deps, additional_dependencies) do
-    {deps_keyword, _} = Code.eval_quoted(current_deps)
+    attributes =
+      current_deps
+      |> collect_module_attributes()
+      |> Enum.map(fn name ->
+        quote do
+          Module.put_attribute(__MODULE__, unquote(name), true)
+        end
+      end)
+
+    random_module_name = Base.encode32(:rand.bytes(16), padding: false)
+
+    wrapped_current_deps =
+      quote do
+        defmodule unquote(Module.concat([MixEdit, TmpModule, random_module_name])) do
+          unquote(attributes)
+          unquote(current_deps)
+        end
+      end
+
+    {{:module, _, _, deps_keyword}, _} =
+      Code.eval_quoted(wrapped_current_deps, [], file: "generated_module_by_mix_edit.ex")
 
     dependencies =
       Enum.filter(
@@ -241,6 +261,25 @@ defmodule MixEdit do
         [
           {{:__block__, [format: :keyword], [:git]}, {:__block__, [delimiter: "\""], [value]}}
         ]
+    end)
+  end
+
+  defp collect_module_attributes(current_deps) do
+    Enum.reduce(current_deps, [], fn item, acc ->
+      case item do
+        {_, _context,
+         [
+           _,
+           _,
+           [
+             {_, {:@, _, [{module_attribute, _, _}]}}
+           ]
+         ]} ->
+          [module_attribute | acc]
+
+        _ ->
+          acc
+      end
     end)
   end
 
