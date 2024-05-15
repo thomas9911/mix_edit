@@ -5,6 +5,7 @@ defmodule MixEdit.GeneralTask do
 
   @options [
     version: :string,
+    git: :string,
     sorted: :boolean,
     out: :string,
     in: :string,
@@ -98,7 +99,7 @@ defmodule MixEdit.GeneralTask do
       |> Enum.flat_map(fn {:remove, _, removed} -> removed end)
       |> Enum.map(&to_string/1)
 
-    unless removed == [] do
+    if removed != [] do
       Mix.Task.run("deps.unlock", removed)
       Mix.Task.run("deps.clean", removed)
     end
@@ -192,6 +193,7 @@ defmodule MixEdit.GeneralTask do
     )
   end
 
+  defp version_or_path(%{git: git}), do: "git `#{git}`"
   defp version_or_path(%{version: version}), do: "version `#{version}`"
   defp version_or_path(%{path: path}), do: "path `#{path}`"
 

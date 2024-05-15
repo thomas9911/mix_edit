@@ -203,5 +203,58 @@ defmodule MixEditTest do
     end
   end
 
+  test "sorting the dependency list works" do
+    deps = """
+    defmodule Test.MixProject do
+      use Mix.Project
+
+      def project do
+        [
+          version: "0.1.0",
+          start_permanent: Mix.env() == :prod,
+          deps: deps()
+        ]
+      end
+
+      defp deps do
+        [
+          {:jason, "~> 0.0.0"},
+          {:ex_doc, ">= 0.0.0"},
+          {:sweet_xml, ">= 0.0.0"}
+        ]
+      end
+    end
+    """
+
+    opts = %{
+      dependencies: [testing: [version: ">= 0.0.0"]],
+      sorted: true,
+      app: :test,
+      method: :add
+    }
+
+    {quoted, comments} = MixEdit.quote_string!(deps)
+
+    {new_file, info} =
+      Macro.prewalk(
+        quoted,
+        nil,
+        &MixEdit.deps_walker(&1, &2, opts)
+      )
+
+    assert {:add, [testing: [version: ">= 0.0.0"]]} == info
+
+    stringified =
+      new_file
+      |> Code.Formatter.to_algebra(comments: comments)
+      |> Inspect.Algebra.format(:infinity)
+      |> IO.iodata_to_binary()
+      |> String.replace("\n", " ")
+      |> String.replace(~r/\s+/, " ")
+
+    assert stringified =~
+             "defp deps do [{:ex_doc, \">= 0.0.0\"}, {:jason, \"~> 0.0.0\"}, {:sweet_xml, \">= 0.0.0\"}, {:testing, \">= 0.0.0\"}] end"
+  end
+
   defp unwrap_deps({{:__block__, _, [deps]}, _}), do: deps
 end

@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Edit.Update do
   OPTS:
     --version         Set the version for the DEP
     --path            Set the path for the DEP
+    --git             Set the git repo for the DEP
     --only            Setting the only flag, example 'test' or 'test+dev'
     --override        Set the override option
     --no-runtime      Set the runtime option to false

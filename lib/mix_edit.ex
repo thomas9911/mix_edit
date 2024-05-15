@@ -233,6 +233,11 @@ defmodule MixEdit do
         [
           {{:__block__, [format: :keyword], [:path]}, {:__block__, [delimiter: "\""], [value]}}
         ]
+
+      {:git, value} ->
+        [
+          {{:__block__, [format: :keyword], [:git]}, {:__block__, [delimiter: "\""], [value]}}
+        ]
     end)
   end
 
