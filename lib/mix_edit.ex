@@ -61,7 +61,8 @@ defmodule MixEdit do
       emit_warnings: false
     ]
 
-    Code.string_to_quoted_with_comments!(intext, quote_opts)
+    {:ok, data, comments} = Spitfire.parse_with_comments(intext, quote_opts)
+    {data, comments}
   end
 
   @doc "Function that updates the mix.exs file (or `Mix.Project`)"

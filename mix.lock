@@ -1,2 +1,3 @@
 %{
+  "spitfire": {:git, "https://github.com/elixir-tools/spitfire.git", "e47385f64db19f65b8efdd57d003272376446a4e", []},
 }

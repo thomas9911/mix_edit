@@ -33,6 +33,9 @@ defmodule MixEdit.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    []
+    [
+      {:spitfire, git: "https://github.com/elixir-tools/spitfire.git"}
+      # {:spitfire, path: "../spitfire"}
+    ]
   end
 end
