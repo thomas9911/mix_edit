@@ -1,10 +1,10 @@
 defmodule MixEdit.FakePackage do
   def get(nil, "testing", _) do
-    {:ok, {200, %{"latest_stable_version" => "735.7"}, []}}
+    {:ok, {200, %{"latest_stable_version" => "735.7.6"}, []}}
   end
 
   def get("myorg", "testing", _) do
-    {:ok, {200, %{"latest_stable_version" => "1.23"}, []}}
+    {:ok, {200, %{"latest_stable_version" => "1.23.6"}, []}}
   end
 
   def get(nil, "not_existing", _) do

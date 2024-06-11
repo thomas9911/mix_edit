@@ -10,6 +10,7 @@ defmodule Mix.Tasks.Edit.Update do
 
   OPTS:
     --version         Set the version for the DEP
+    --lossy           Fetch the latest version without patch (example '~> 1.2')
     --path            Set the path for the DEP
     --git             Set the git repo for the DEP
     --only            Setting the only flag, example 'test' or 'test+dev'

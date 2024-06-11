@@ -28,8 +28,9 @@ defmodule MixEdit do
         auth = Mix.Tasks.Hex.auth_info(:read, auth_inline: false)
 
         hex_version =
-          get_version_fetcher().get(extra_requirements[:org], package, auth)
+          get_version_fetcher().get(opts[:org], package, auth)
           |> get_latest_package_version!(package)
+          |> remove_patch_version(opts[:lossy])
           |> add_prefix()
 
         [version: hex_version]
@@ -48,6 +49,13 @@ defmodule MixEdit do
   defp add_prefix(version) do
     "~> #{version}"
   end
+
+  defp remove_patch_version(version, true) do
+    version_struct = Version.parse!(version)
+    "#{version_struct.major}.#{version_struct.minor}"
+  end
+
+  defp remove_patch_version(version, _), do: version
 
   @doc """
   Convert elixir text to quoted term
@@ -227,6 +235,9 @@ defmodule MixEdit do
   defp format_dep_keyword(keyword) do
     Enum.flat_map(keyword, fn
       {:only, []} ->
+        []
+
+      {:lossy, _} ->
         []
 
       {:only, value} ->
