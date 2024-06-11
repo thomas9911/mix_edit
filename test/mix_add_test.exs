@@ -4,7 +4,7 @@ defmodule MixEditTest do
 
   describe "fetch_version_or_option" do
     test "fetches from hex" do
-      assert [version: "~> 735.7"] == MixEdit.fetch_version_or_option("testing")
+      assert [version: "~> 735.7.6"] == MixEdit.fetch_version_or_option("testing")
     end
 
     test "not exists raises" do
@@ -14,6 +14,23 @@ defmodule MixEditTest do
     end
 
     test "fetches from hex with options" do
+      assert [
+               version: "~> 1.23.6",
+               override: true,
+               runtime: false,
+               only: [:test, :dev, :prod],
+               org: "myorg"
+             ] ==
+               MixEdit.fetch_version_or_option("testing",
+                 override: true,
+                 runtime: false,
+                 only: "test+dev+prod",
+                 org: "myorg",
+                 extra_fields: :ignored
+               )
+    end
+
+    test "fetches from hex with options, lossy" do
       assert [
                version: "~> 1.23",
                override: true,
@@ -26,6 +43,7 @@ defmodule MixEditTest do
                  runtime: false,
                  only: "test+dev+prod",
                  org: "myorg",
+                 lossy: true,
                  extra_fields: :ignored
                )
     end

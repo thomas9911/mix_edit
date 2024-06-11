@@ -15,6 +15,7 @@ defmodule MixEdit.GeneralTask do
     only: :string,
     org: :string,
     override: :boolean,
+    lossy: :boolean,
     runtime: :boolean
   ]
 
@@ -48,7 +49,9 @@ defmodule MixEdit.GeneralTask do
           [{String.to_atom(dep), MixEdit.fetch_version_or_option(dep, opts)}]
 
         deps ->
-          Enum.map(deps, fn dep -> {String.to_atom(dep), MixEdit.fetch_version_or_option(dep)} end)
+          Enum.map(deps, fn dep ->
+            {String.to_atom(dep), MixEdit.fetch_version_or_option(dep, lossy: opts[:lossy])}
+          end)
       end
 
     app_paths =
